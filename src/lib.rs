@@ -91,11 +91,11 @@ pub fn decorate(attr:TokenStream, content:TokenStream)->TokenStream{
             let args:Vec<TokenStream> = og_sig.clone().inputs.iter()
                 .map(UsableAttr::get_name)
                 .collect();
-            let new_fun = TokenStream::from_str(format!("fn {} {{ {}({},{}) }}",
+            let new_fun = TokenStream::from_str(format!("{} {{ {}({},{}) }}",
                 og_sig.to_token_stream().to_string(),
                 attr,
                 new_name.to_string(),
-                args.iter().map(ToString::to_string).collect::<Vec<String>>().join(",")
+                args.iter().map(ToString::to_string).collect::<Vec<String>>().join(",").trim_end_matches(',')
                 ).as_str()).unwrap();
             let mut stream:TokenStream = fun.into_token_stream().into();
             stream.extend(new_fun);

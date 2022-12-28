@@ -87,7 +87,9 @@ pub fn decorate(attr:TokenStream, content:TokenStream)->TokenStream{
             // first format arg is function name which should be the original name
             // second format arg is the decorator function name
             // third format arg is the original function's new random name
-            // fourth format arg is "arg1,arg2,arg3,..."
+            // fourth format arg decides if we need a leading comma before the arguments in the
+            // case where a function doesn't take any arguments
+            // fifth format arg is "arg1,arg2,arg3,..."
             let args:Vec<TokenStream> = og_sig.clone().inputs.iter()
                 .map(UsableAttr::get_name)
                 .collect();

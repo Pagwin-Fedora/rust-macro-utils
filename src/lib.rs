@@ -75,7 +75,7 @@ impl UsableAttr for syn::FnArg {
 
 #[proc_macro_attribute]
 pub fn decorate(attr:TokenStream, content:TokenStream)->TokenStream{
-    match parse_macro_input!(content as Item){
+    let ret = match parse_macro_input!(content as Item){
         Item::Fn(mut fun)=>{
             let og_name = fun.sig.ident.clone();
             let og_sig = fun.sig.clone();
@@ -104,5 +104,6 @@ pub fn decorate(attr:TokenStream, content:TokenStream)->TokenStream{
         _=>{
             quote!(compile_error!("Invalid input")).into_token_stream().into()
         }
-    }
+    };
+    format!(r#"compile_error!("{}");"#,ret.to_string()).into_token_stream().into()
 }

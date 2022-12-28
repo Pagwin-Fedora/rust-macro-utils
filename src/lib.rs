@@ -5,7 +5,7 @@ extern crate rand;
 use std::str::FromStr;
 use proc_macro::TokenStream;
 use quote::{quote, ToTokens};
-use syn::{parse_macro_input, Item, Expr};
+use syn::{parse_macro_input, Item};
 
 #[proc_macro_attribute]
 pub fn assert_func(_:TokenStream, content:TokenStream)->TokenStream{
@@ -79,7 +79,7 @@ pub fn decorate(attr:TokenStream, content:TokenStream)->TokenStream{
         Item::Fn(mut fun)=>{
             let og_name = fun.sig.ident.clone();
             let og_sig = fun.sig.clone();
-            let new_name:TokenStream = TokenStream::from_str(format!("__{}__{:x}",og_name,rand::random::<u16>()).as_str())
+            let new_name:TokenStream = TokenStream::from_str(format!("__{}_{:x}",og_name,rand::random::<u16>()).as_str())
                 .expect("Something bad happened when making the new name");
             let new_clone = new_name.clone();
             fun.sig.ident = parse_macro_input!(new_clone as syn::Ident);

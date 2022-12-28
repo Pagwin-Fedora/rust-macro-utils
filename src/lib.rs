@@ -91,11 +91,17 @@ pub fn decorate(attr:TokenStream, content:TokenStream)->TokenStream{
             let args:Vec<TokenStream> = og_sig.clone().inputs.iter()
                 .map(UsableAttr::get_name)
                 .collect();
-            let new_fun = TokenStream::from_str(format!("{} {{ {}({},{}) }}",
+            let new_fun = TokenStream::from_str(format!("{} {{ {}({}{}{}) }}",
                 og_sig.to_token_stream().to_string(),
                 attr,
                 new_name.to_string(),
-                args.iter().map(ToString::to_string).collect::<Vec<String>>().join(",").trim_end_matches(',')
+                    if args.len() >= 1 {
+                        ","
+                    }
+                    else {
+                        ""
+                    },
+                args.iter().map(ToString::to_string).collect::<Vec<String>>().join(",")
                 ).as_str()).unwrap();
             let mut stream:TokenStream = fun.into_token_stream().into();
             stream.extend(new_fun);
@@ -105,5 +111,6 @@ pub fn decorate(attr:TokenStream, content:TokenStream)->TokenStream{
             quote!(compile_error!("Invalid input")).into_token_stream().into()
         }
     };
-    format!(r#"compile_error!("{}");"#,ret.to_string()).into_token_stream().into()
+    ret
+    //format!(r#"compile_error!("{}");"#,ret.to_string()).into_token_stream().into()
 }

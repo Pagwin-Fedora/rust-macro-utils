@@ -1,11 +1,18 @@
 extern crate syn;
 extern crate quote;
 extern crate rand;
+extern crate lazy_static;
 
+use rand::{SeedableRng,Rng};
 use std::str::FromStr;
+use std::sync::Mutex;
 use proc_macro::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{parse_macro_input, Item};
+
+lazy_static::lazy_static!{
+    static ref GENERATOR:Mutex<rand::rngs::SmallRng> = Mutex::from(rand::rngs::SmallRng::seed_from_u64(0x13378001));
+}
 
 #[proc_macro_attribute]
 pub fn assert_func(_:TokenStream, content:TokenStream)->TokenStream{
@@ -79,7 +86,8 @@ pub fn decorate(attr:TokenStream, content:TokenStream)->TokenStream{
         Item::Fn(mut fun)=>{
             let og_name = fun.sig.ident.clone();
             let og_sig = fun.sig.clone();
-            let new_name:TokenStream = TokenStream::from_str(format!("__{}_{:x}",og_name,rand::random::<u16>()).as_str())
+            let err_msg = "A mutex problem has occurred in the decorate macro";
+            let new_name:TokenStream = TokenStream::from_str(format!("__{}_{:x}",og_name,{GENERATOR.lock().expect(err_msg).gen::<u16>()}).as_str())
                 .expect("Something bad happened when making the new name");
             let new_clone = new_name.clone();
             fun.sig.ident = parse_macro_input!(new_clone as syn::Ident);

@@ -8,7 +8,8 @@ edition = "2021"
 [dependencies]
 syn = {version = "*", features=["full"]}
 quote = "*"
-rand = "0.8"
+rand = {version = "0.8", features=["small_rng"]}
+lazy_static = "1.4"
 
 [lib]
 proc-macro = true

@@ -9,6 +9,7 @@ use std::sync::Mutex;
 use proc_macro::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{parse_macro_input, Item};
+use syn::{Token,parenthesized};
 
 lazy_static::lazy_static!{
     static ref GENERATOR:Mutex<rand::rngs::SmallRng> = Mutex::from(rand::rngs::SmallRng::seed_from_u64(0x13378001));
@@ -79,7 +80,18 @@ impl UsableAttr for syn::FnArg {
     }
 }
 
-
+struct GimmeParen(syn::token::Paren);
+impl syn::parse::Parse for GimmeParen {
+    fn parse(input:syn::parse::ParseStream)->syn::parse::Result<Self>{
+        let content;
+        Ok(parenthesized!(content in input).into())
+    }
+}
+impl From<syn::token::Paren> for GimmeParen {
+    fn from(other:syn::token::Paren) -> Self{
+        GimmeParen(other)
+    }
+}
 #[proc_macro_attribute]
 pub fn decorate(attr:TokenStream, content:TokenStream)->TokenStream{
     let ret = match parse_macro_input!(content as Item){
@@ -91,7 +103,20 @@ pub fn decorate(attr:TokenStream, content:TokenStream)->TokenStream{
                 .expect("Something bad happened when making the new name");
             let new_clone = new_name.clone();
             fun.sig.ident = parse_macro_input!(new_clone as syn::Ident);
-            
+
+            let s_token = "(self)"
+                .parse::<TokenStream>().unwrap();
+                //.parse::<GimmeParen>().unwrap();
+            let s_token = parse_macro_input!(s_token as GimmeParen);
+            if let syn::Visibility::Public(_) = fun.vis{
+                fun.vis = syn::Visibility::Restricted(syn::VisRestricted{
+                    pub_token: <Token![pub]>::default(),
+                    paren_token: s_token.0,
+                    in_token:None,
+                    path:Box::from(syn::Path::from(<Token!(self)>::default()))
+                });
+            }
+
             // first format arg is function name which should be the original name
             // second format arg is the decorator function name
             // third format arg is the original function's new random name

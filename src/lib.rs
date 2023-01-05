@@ -9,7 +9,6 @@ use std::sync::Mutex;
 use proc_macro::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{parse_macro_input, Item};
-use syn::{Token,parenthesized};
 
 lazy_static::lazy_static!{
     static ref GENERATOR:Mutex<rand::rngs::SmallRng> = Mutex::from(rand::rngs::SmallRng::seed_from_u64(0x13378001));
@@ -80,18 +79,6 @@ impl UsableAttr for syn::FnArg {
     }
 }
 
-struct GimmeParen(syn::token::Paren);
-impl syn::parse::Parse for GimmeParen {
-    fn parse(input:syn::parse::ParseStream)->syn::parse::Result<Self>{
-        let content;
-        Ok(parenthesized!(content in input).into())
-    }
-}
-impl From<syn::token::Paren> for GimmeParen {
-    fn from(other:syn::token::Paren) -> Self{
-        GimmeParen(other)
-    }
-}
 // parse should be a const function god dammit rust
 const VIS_TEMPLATE:&'static str = r#"pub(self) fn ________template_______(){}"#;
 
@@ -131,7 +118,7 @@ pub fn decorate(attr:TokenStream, content:TokenStream)->TokenStream{
             let args:Vec<TokenStream> = og_sig.clone().inputs.iter()
                 .map(UsableAttr::get_name)
                 .collect();
-            let mut new_fun = TokenStream::from_str(format!("{} {} {{ {}({}{}{}) }}",
+            let new_fun = TokenStream::from_str(format!("{} {} {{ {}({}{}{}) }}",
                 og_vis.to_token_stream().to_string(),
                 og_sig.to_token_stream().to_string(),
                 attr,

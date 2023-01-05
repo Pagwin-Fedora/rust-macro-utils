@@ -7,7 +7,7 @@ This repository was made to respond to a joking comment that python decorators a
 ## Example
 input:
 ```rs
-#[rust_macro_utils::decorate(num_logger)]
+#[macro_utils::decorate(num_logger)]
 fn num_doer(num:u64)->u64{
   println!("Doing {}", num);
   num*2
@@ -15,9 +15,10 @@ fn num_doer(num:u64)->u64{
 fn num_logger(input_fn:fn(u64)->u64,arg1:u64)->u64 {
   println!("logging that we received input {}", arg1);
   let ret_val = input_fn(arg1);
-  println!("finished running the function");
+  println!("finished running the function ret val = {}", ret_val);
   ret_val
 }
+
 ```
 output source code from macro:
 ```rs
@@ -32,7 +33,7 @@ fn __num_doer_xxxx(num:u64)->u64{
 fn num_logger(input_fn:fn(u64)->u64,arg1:u64)->u64 {
   println!("logging that we received input {}", arg1);
   let ret_val = input_fn(arg1);
-  println!("finished running the function");
+  println!("finished running the function ret val = {}", ret_val);
   ret_val
 }
 ```

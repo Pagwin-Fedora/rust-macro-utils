@@ -92,6 +92,9 @@ impl From<syn::token::Paren> for GimmeParen {
         GimmeParen(other)
     }
 }
+// parse should be a const function god dammit rust
+const VIS_TEMPLATE:&'static str = r#"pub(self) fn ________template_______(){}"#;
+
 #[proc_macro_attribute]
 pub fn decorate(attr:TokenStream, content:TokenStream)->TokenStream{
     let ret = match parse_macro_input!(content as Item){
@@ -104,19 +107,21 @@ pub fn decorate(attr:TokenStream, content:TokenStream)->TokenStream{
             let new_clone = new_name.clone();
             fun.sig.ident = parse_macro_input!(new_clone as syn::Ident);
 
-            let s_token = "(self)"
-                .parse::<TokenStream>().unwrap();
-                //.parse::<GimmeParen>().unwrap();
-            let s_token = parse_macro_input!(s_token as GimmeParen);
-            if let syn::Visibility::Public(_) = fun.vis{
-                fun.vis = syn::Visibility::Restricted(syn::VisRestricted{
-                    pub_token: <Token![pub]>::default(),
-                    paren_token: s_token.0,
-                    in_token:None,
-                    path:Box::from(syn::Path::from(<Token!(self)>::default()))
-                });
+            //let s_token = "(self)"
+            //    .parse::<TokenStream>().unwrap();
+            //    //.parse::<GimmeParen>().unwrap();
+            ////println!("Parsed");
+            //let s_token = parse_macro_input!(s_token as GimmeParen);
+            //println!("s token");
+            let og_vis = if let syn::Visibility::Public(_) = fun.vis{
+                let new_vis = VIS_TEMPLATE.parse().unwrap();
+                let old_vis = fun.vis;
+                fun.vis = parse_macro_input!(new_vis as syn::ItemFn).vis;
+                old_vis
             }
-
+            else {
+                fun.vis.clone()
+            };
             // first format arg is function name which should be the original name
             // second format arg is the decorator function name
             // third format arg is the original function's new random name
@@ -126,7 +131,8 @@ pub fn decorate(attr:TokenStream, content:TokenStream)->TokenStream{
             let args:Vec<TokenStream> = og_sig.clone().inputs.iter()
                 .map(UsableAttr::get_name)
                 .collect();
-            let new_fun = TokenStream::from_str(format!("{} {{ {}({}{}{}) }}",
+            let mut new_fun = TokenStream::from_str(format!("{} {} {{ {}({}{}{}) }}",
+                og_vis.to_token_stream().to_string(),
                 og_sig.to_token_stream().to_string(),
                 attr,
                 new_name.to_string(),
@@ -139,6 +145,7 @@ pub fn decorate(attr:TokenStream, content:TokenStream)->TokenStream{
                 args.iter().map(ToString::to_string).collect::<Vec<String>>().join(",")
                 ).as_str()).unwrap();
             let mut stream:TokenStream = fun.into_token_stream().into();
+
             stream.extend(new_fun);
             stream
         },

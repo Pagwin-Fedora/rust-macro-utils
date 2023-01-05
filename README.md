@@ -1,6 +1,6 @@
 # rust-macro-utils
 
-This repository was made to respond to a joking comment that python decorators are better than rust macros by implementing most of python's decorator functionality into a rust macro. Warning this is a buggy mess that will have issues with async functions and will provide annoying(but working) output for functions that use any visibility other than fully public or fully private aka `pub` or `pub(self)`(I know how to fix the visibility issue but I'm done dealing with this forn now). Also adding the example I'm realizing I'm a dumbass because the decorator function should only take the input function as an arg and return an impl Fn with the same type sig but oh well. 
+This repository was made to respond to a joking comment that python decorators are better than rust macros by implementing most of python's decorator functionality into a rust macro. Warning this is a buggy mess that will have issues with async functions and will provide annoying(but working) output for functions that use any visibility other than fully public or fully private aka `pub` or `pub(self)`(I know how to fix the visibility issue but I'm done dealing with this for now). Also adding the example I'm realizing I'm a dumbass because the decorator function should only take the input function as an arg and return an impl Fn with the same type sig but oh well. 
 
 **PLEASE DON'T USE THIS IN PROD EVER.**
 
